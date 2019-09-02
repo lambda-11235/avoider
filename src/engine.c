@@ -16,6 +16,7 @@ int initEngine(struct EngineInfo *info) {
     info->bot.speed = (struct Speed) {0, 0};
 
     initObjectList(&info->obstacles);
+    initObjectList(&info->trackedObstacles);
 
     info->goal = (struct Circle) {{SCREEN_WIDTH - GOAL_RADIUS, SCREEN_HEIGHT - GOAL_RADIUS},
         GOAL_RADIUS};
@@ -46,6 +47,7 @@ int initEngine(struct EngineInfo *info) {
 void quitEngine(struct EngineInfo *info) {
     info->collAvoid.free(&info->collAvoid);
 
+    freeObjectList(&info->trackedObstacles);
     freeObjectList(&info->obstacles);
 
     SDL_DestroyRenderer(info->renderer);
@@ -157,32 +159,35 @@ void runPhysics(struct EngineInfo *info, float framesPassed) {
 
     SDL_GetRendererOutputSize(info->renderer, &w, &h);
     gcObjectList(&info->obstacles, (struct Rectangle) {{0, 0}, {w, h}});
+    gcObjectList(&info->trackedObstacles, (struct Rectangle) {{0, 0}, {w, h}});
 
     if (!info->paused) {
         // Determine what objects are in sensory range, call avoidance
         // algorithm, and move objects.
-        struct ObjectList senseObjects;
-        initObjectList(&senseObjects);
+        struct ObjectNode *node = info->trackedObstacles.head;
+        while (node != NULL) {
+            moveObject(&node->object, framesPassed);
+            node = node->next;
+        }
 
-        struct ObjectNode *node = info->obstacles.head;
+        node = info->obstacles.head;
         while (node != NULL) {
             moveObject(&node->object, framesPassed);
 
             if (overlapping(node->object.geom, info->bot.geom)) {
                 info->collided = true;
             } else if (overlapping(node->object.geom,
-                (struct Circle) {info->bot.geom.center, BOT_SENSE_RADIUS})) {
-                addObject(&senseObjects, node->object);
+                (struct Circle) {info->bot.geom.center, BOT_SENSE_RADIUS})
+                && !hasObject(&info->trackedObstacles, node->object, TRACKING_ERROR)) {
+                addObject(&info->trackedObstacles, node->object);
             }
 
             node = node->next;
         }
 
         info->bot.speed = info->collAvoid.avoid(&info->bot, info->goal,
-            &senseObjects, framesPassed, info->collAvoid.data);
+            &info->trackedObstacles, framesPassed, info->collAvoid.data);
         limitObjectSpeed(&info->bot, BOT_MAX_SPEED);
-
-        freeObjectList(&senseObjects);
 
         moveObject(&info->bot, framesPassed);
     }
@@ -240,6 +245,12 @@ void drawScene(struct EngineInfo *info, float framesPassed) {
     struct ObjectNode *node = info->obstacles.head;
     while (node != NULL) {
         drawCircle(info, node->object.geom, OBSTACLE_COLOR);
+        node = node->next;
+    }
+
+    node = info->trackedObstacles.head;
+    while (node != NULL) {
+        drawCircle(info, node->object.geom, TRACKED_OBSTACLE_COLOR);
         node = node->next;
     }
 

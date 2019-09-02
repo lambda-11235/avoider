@@ -35,6 +35,7 @@ struct EngineInfo {
 
     struct Object bot;
     struct ObjectList obstacles;
+    struct ObjectList trackedObstacles;
     struct Circle goal;
 
     struct CollisionAvoid collAvoid;

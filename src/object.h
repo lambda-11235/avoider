@@ -43,6 +43,14 @@ void freeObjectList(struct ObjectList *list);
 void addObject(struct ObjectList *list, struct Object obj);
 
 /**
+ * Detects if an object is already in the list.
+ *
+ * @param error The margin of error in object dimensions for an object to be
+ * considered the same.
+ */
+bool hasObject(struct ObjectList *list, struct Object obj, float error);
+
+/**
  * Deletes all objects not in rect.
  */
 void gcObjectList(struct ObjectList *list, struct Rectangle rect);

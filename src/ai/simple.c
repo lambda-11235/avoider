@@ -36,33 +36,32 @@ struct Speed simpleAvoid(const struct Object *bot, struct Circle goal,
     struct Speed newSpeed;
 
 
-    if (obstacles->head == NULL) {
+    // Grab closest object
+    struct ObjectNode *node = obstacles->head;
+    struct Object *obs = NULL;
+
+    // Distance from bots surface to closest obstacle's surface.
+    float dist = BOT_REACT_RADIUS - bot->geom.radius;
+
+    while (node != NULL) {
+        float nextDist = distance(pos, node->object.geom.center)
+            - node->object.geom.radius - bot->geom.radius;
+
+        if (nextDist < dist) {
+            obs = &node->object;
+            dist = nextDist;
+        }
+
+        node = node->next;
+    }
+
+
+    if (obs == NULL) {
         newSpeed.x = (goal.center.x - pos.x);
         newSpeed.y = (goal.center.y - pos.y);
 
         info->framesLeft -= framesPassed;
     } else {
-        // Grab closest object
-        struct ObjectNode *node = obstacles->head;
-        struct Object *obs = &node->object;
-
-        // Distance from bots surface to closest obstacle's surface.
-        float dist = distance(pos, obs->geom.center)
-            - obs->geom.radius - bot->geom.radius;
-
-        while (node != NULL) {
-            float nextDist = distance(pos, node->object.geom.center)
-                - node->object.geom.radius - bot->geom.radius;
-
-            if (nextDist < dist) {
-                obs = &node->object;
-                dist = nextDist;
-            }
-
-            node = node->next;
-        }
-
-
         if (totalSpeed(obs->speed) > 0) {
             // Clockwise movement relative to speed
             newSpeed.x = -obs->speed.y;
@@ -78,7 +77,8 @@ struct Speed simpleAvoid(const struct Object *bot, struct Circle goal,
         } else if (dist < BOT_CUSHION) {
             newSpeed.x = pos.x - obs->geom.center.x;
             newSpeed.y = pos.y - obs->geom.center.y;
-        } else if (distance(pos, goal.center) < distance(obs->geom.center, goal.center)) {
+        } else if (distance(pos, goal.center) < distance(obs->geom.center, goal.center)
+            || distance(pos, goal.center) < distance(pos, obs->geom.center)) {
             newSpeed.x = (goal.center.x - pos.x);
             newSpeed.y = (goal.center.y - pos.y);
         } else {

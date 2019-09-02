@@ -51,6 +51,25 @@ void addObject(struct ObjectList *list, struct Object obj) {
 }
 
 
+bool hasObject(struct ObjectList *list, struct Object obj, float error) {
+    struct ObjectNode *node = list->head;
+
+    while (node != NULL) {
+        if (fabs(node->object.geom.center.x - obj.geom.center.x) < error
+            && fabs(node->object.geom.center.y - obj.geom.center.y) < error
+            && fabs(node->object.geom.radius - obj.geom.radius) < error
+            && fabs(node->object.speed.x - obj.speed.x) < error
+            && fabs(node->object.speed.y - obj.speed.y) < error) {
+            return true;
+        }
+
+        node = node->next;
+    }
+
+    return false;
+}
+
+
 void gcObjectList(struct ObjectList *list, struct Rectangle rect) {
     struct ObjectNode *last = NULL;
     struct ObjectNode *next = NULL;
