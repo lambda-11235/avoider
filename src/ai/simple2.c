@@ -39,13 +39,18 @@ Speed simple2Avoid(const struct Object *bot, struct Circle goal,
     struct ObjectNode *node = obstacles->head;
     while (node != NULL) {
         Point obsPos = node->object.geom.center;
+        float obsRad = node->object.geom.radius;
         float dist = distance(pos, obsPos) - node->object.geom.radius - bot->geom.radius;
         float speed = magnitude(node->object.speed);
 
         float common_mult = 1/(dist*obstacles->length/BOT_REACT_RADIUS);
 
         bool approachingBot = projectMultiplier(node->object.speed, subVec(pos, obsPos)) > 0;
-        bool betweenBotGoal = distance(obsPos, goal.center) <= goalDist;
+
+        // First part checks if goal is closer to the obstacle than the bot.
+        // Second part checks that the goal is not between the bot and obstacle.
+        bool betweenBotGoal = distance(obsPos, goal.center) - obsRad <= goalDist
+            && !(projectMultiplier(subVec(goal.center, pos), subVec(goal.center, obsPos)) < 0);
 
         if (speed > 0 && (approachingBot || (betweenBotGoal && magnitude(bot->speed) > speed))) {
             // Clockwise movement relative to speed
