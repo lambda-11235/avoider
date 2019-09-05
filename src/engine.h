@@ -14,8 +14,8 @@
 
 struct MouseDrag {
     bool active;
-    struct Point start;
-    struct Point end;
+    Point start;
+    Point end;
 };
 
 struct EngineInfo {

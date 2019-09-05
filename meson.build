@@ -17,6 +17,7 @@ srcs = [
 
   'src/ai/common.c',
   'src/ai/simple.c',
+  'src/ai/simple2.c',
   'src/engine.c',
   'src/math_util.c',
   'src/object.c',

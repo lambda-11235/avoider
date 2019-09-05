@@ -3,22 +3,21 @@
 
 
 void limitObjectSpeed(struct Object *obj, float speed) {
-    float curSpeed = sqrt(sqr(obj->speed.x) + sqr(obj->speed.y));
+    float curSpeed = magnitude(obj->speed);
 
-    if (curSpeed > speed) {
-        obj->speed.x *= speed/curSpeed;
-        obj->speed.y *= speed/curSpeed;
-    }
+    if (curSpeed > speed)
+        obj->speed = setMagnitude(obj->speed, speed);
 }
 
 
 void moveObject(struct Object *obj, float framesPassed) {
-    obj->geom.center.x += obj->speed.x*framesPassed;
-    obj->geom.center.y += obj->speed.y*framesPassed;
+    struct Vector delta = multScalar(framesPassed, obj->speed);
+    obj->geom.center = addVec(obj->geom.center, delta);
 }
 
 
 int initObjectList(struct ObjectList *list) {
+    list->length = 0;
     list->head = NULL;
     list->tail = NULL;
     return 0;
@@ -33,6 +32,8 @@ void freeObjectList(struct ObjectList *list) {
         node = node->next;
         free(tmp);
     }
+
+    list->length = 0;
 }
 
 
@@ -48,6 +49,8 @@ void addObject(struct ObjectList *list, struct Object obj) {
         list->tail->next = newNode;
         list->tail = newNode;
     }
+
+    list->length++;
 }
 
 
@@ -92,6 +95,7 @@ void gcObjectList(struct ObjectList *list, struct Rectangle rect) {
             }
 
             free(node);
+            list->length--;
         } else {
             last = node;
         }

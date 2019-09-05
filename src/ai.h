@@ -16,7 +16,7 @@ struct CollisionAvoid {
      *
      * @return The new speed for the bot.
      */
-    struct Speed (*avoid)(const struct Object *bot, struct Circle goal,
+    Speed (*avoid)(const struct Object *bot, struct Circle goal,
         struct ObjectList *obstacles, float framesPassed, void *data);
 };
 
@@ -44,6 +44,8 @@ void doNothingFree(struct CollisionAvoid *collAvoid);
  *         move around obs's circumference
  */
 void initSimpleAvoid(struct CollisionAvoid *collAvoid);
+
+void initSimple2Avoid(struct CollisionAvoid *collAvoid);
 
 
 #endif /* end of include guard: AI_H */

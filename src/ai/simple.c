@@ -8,7 +8,7 @@ struct SimpleInfo {
 };
 
 
-struct Speed simpleAvoid(const struct Object *bot, struct Circle goal,
+Speed simpleAvoid(const struct Object *bot, struct Circle goal,
     struct ObjectList *obstacles, float framesPassed, void *data);
 
 void simpleFree(struct CollisionAvoid *collAvoid);
@@ -29,11 +29,11 @@ void simpleFree(struct CollisionAvoid *collAvoid) {
 }
 
 
-struct Speed simpleAvoid(const struct Object *bot, struct Circle goal,
+Speed simpleAvoid(const struct Object *bot, struct Circle goal,
     struct ObjectList *obstacles, float framesPassed, void *data) {
     struct SimpleInfo *info = data;
-    struct Point pos = bot->geom.center;
-    struct Speed newSpeed;
+    Point pos = bot->geom.center;
+    Speed newSpeed;
 
 
     // Grab closest object
@@ -57,23 +57,21 @@ struct Speed simpleAvoid(const struct Object *bot, struct Circle goal,
 
 
     if (obs == NULL) {
-        newSpeed.x = (goal.center.x - pos.x);
-        newSpeed.y = (goal.center.y - pos.y);
+        newSpeed.x = goal.center.x - pos.x;
+        newSpeed.y = goal.center.y - pos.y;
 
         info->framesLeft -= framesPassed;
     } else {
-        if (totalSpeed(obs->speed) > 0) {
+        if (magnitude(obs->speed) > 0) {
             // Clockwise movement relative to speed
             newSpeed.x = -obs->speed.y;
             newSpeed.y = obs->speed.x;
 
             // Go the other way if this will take us across the obstacle's path.
             float angle = normAngle(angleBetween(obs->geom.center, pos)
-                - speedAngle(obs->speed));
-            if (angle > M_PI) {
-                newSpeed.x = obs->speed.y;
-                newSpeed.y = -obs->speed.x;
-            }
+                - angleVec(obs->speed));
+            if (angle > M_PI)
+                newSpeed = multScalar(-1, newSpeed);
         } else if (dist < BOT_CUSHION) {
             newSpeed.x = pos.x - obs->geom.center.x;
             newSpeed.y = pos.y - obs->geom.center.y;
@@ -93,14 +91,12 @@ struct Speed simpleAvoid(const struct Object *bot, struct Circle goal,
             newSpeed.y = pos.x - obs->geom.center.x;
 
             // Flip if we're taking the long way round.
-            if (info->rotateCounter) {
-                newSpeed.x = -newSpeed.x;
-                newSpeed.y = -newSpeed.y;
-            }
+            if (info->rotateCounter)
+                newSpeed = multScalar(-1, newSpeed);
 
             info->framesLeft = BOT_ROTATE_FRAMES;
         }
     }
 
-    return setTotalSpeed(newSpeed, BOT_MAX_SPEED);
+    return setMagnitude(newSpeed, BOT_MAX_SPEED);
 }

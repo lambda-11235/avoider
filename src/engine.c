@@ -13,7 +13,7 @@ int initEngine(struct EngineInfo *info) {
     info->rightMouseDrag.active = false;
 
     info->bot.geom = (struct Circle) {{BOT_RADIUS, BOT_RADIUS}, BOT_RADIUS};
-    info->bot.speed = (struct Speed) {0, 0};
+    info->bot.speed = (Speed) {0, 0};
 
     initObjectList(&info->obstacles);
     initObjectList(&info->trackedObstacles);
@@ -21,7 +21,7 @@ int initEngine(struct EngineInfo *info) {
     info->goal = (struct Circle) {{SCREEN_WIDTH - GOAL_RADIUS, SCREEN_HEIGHT - GOAL_RADIUS},
         GOAL_RADIUS};
 
-    initSimpleAvoid(&info->collAvoid);
+    initSimple2Avoid(&info->collAvoid);
 
 
     // Init SDL
@@ -66,7 +66,9 @@ void stepFrame(struct EngineInfo *info) {
     runPhysics(info, framesPassed);
     drawScene(info, framesPassed);
 
-    SDL_Delay(1000/FPS - (SDL_GetTicks() - info->lastTicks));
+    unsigned int delay = 1000/FPS - (SDL_GetTicks() - info->lastTicks);
+    delay = fmax(0, fmin(delay, 1000/FPS));
+    SDL_Delay(delay);
 }
 
 

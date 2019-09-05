@@ -15,7 +15,7 @@
 
 struct Object {
     struct Circle geom;
-    struct Speed speed;
+    Speed speed;
 };
 
 struct ObjectNode {
@@ -24,6 +24,7 @@ struct ObjectNode {
 };
 
 struct ObjectList {
+    size_t length;
     struct ObjectNode *head;
     struct ObjectNode *tail;
 };

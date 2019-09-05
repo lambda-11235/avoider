@@ -1,42 +1,69 @@
 
 #include "math_util.h"
 
-
-float totalSpeed(struct Speed speed) {
-    return sqrt(sqr(speed.x) + sqr(speed.y));
+struct Vector addVec(struct Vector v1, struct Vector v2) {
+    return (struct Vector) {v1.x + v2.x, v1.y + v2.y};
 }
 
 
-struct Speed setTotalSpeed(struct Speed speed, float total) {
-    float totalOld = totalSpeed(speed);
-
-    if (totalOld > 0) {
-        speed.x *= total/totalOld;
-        speed.y *= total/totalOld;
-    }
-
-    return speed;
+struct Vector subVec(struct Vector v1, struct Vector v2) {
+    return (struct Vector) {v1.x - v2.x, v1.y - v2.y};
 }
 
 
-float speedAngle(struct Speed speed) {
-    float angle = atan(speed.y/speed.x);
+struct Vector multScalar(float scalar, struct Vector vec) {
+    return (struct Vector) {scalar*vec.x, scalar*vec.y};
+}
 
-    if (speed.x < 0)
+
+float dotVec(struct Vector v1, struct Vector v2) {
+    return v1.x*v2.x + v1.y*v2.y;
+}
+
+
+float magnitude(struct Vector vec) {
+    return sqrt(sqr(vec.x) + sqr(vec.y));
+}
+
+
+struct Vector setMagnitude(struct Vector vec, float magn) {
+    float magnOld = magnitude(vec);
+
+    if (magnOld > 0)
+        vec = multScalar(magn/magnOld, vec);
+
+    return vec;
+}
+
+
+float projectMultiplier(struct Vector vec, struct Vector onto) {
+    return dotVec(vec, onto)/dotVec(onto, onto);
+}
+
+
+struct Vector projectOnto(struct Vector vec, struct Vector onto) {
+    return multScalar(projectMultiplier(vec, onto), onto);
+}
+
+
+float angleVec(struct Vector vec) {
+    float angle = atan(vec.y/vec.x);
+
+    if (vec.x < 0)
         angle = M_PI + angle;
 
     return angle;
 }
 
 
-float distance(struct Point p1, struct Point p2) {
-    return sqrt(sqr(p1.x - p2.x) + sqr(p1.y - p2.y));
+float distance(struct Vector v1, struct Vector v2) {
+    return magnitude(subVec(v1, v2));
 }
 
 
-float angleBetween(struct Point p1, struct Point p2) {
-    float dx = p2.x - p1.x;
-    float dy = p2.y - p1.y;
+float angleBetween(struct Vector v1, struct Vector v2) {
+    float dx = v2.x - v1.x;
+    float dy = v2.y - v1.y;
     float angle = atan(dy/dx);
 
     if (dx < 0)
